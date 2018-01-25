@@ -45,13 +45,17 @@ class Automation:
         self.gas_time = [None]*8
         self.vent_time = []
         
-        self._zero = Valves(jdata.automate['Zero'])
-        self._span = Valves(jdata.automate['Zero'])
+        self._zero = Valves(jdata['automate']['Zero'])
+        self._span = Valves(jdata['automate']['Span'])
         self._valve = []
         
-        for i in range(0,jdata.shape[1]-2):
+        self._current_gas = '10ppm'
+        
+        # Dataframe
+#        self.df = pd.DataFrame()
+        for i in range(0,len(config['automate'])-4):
             name = 'V' + str(i+1)
-            self._valve.append(Valves(jdata.automate[name]))
+            self._valve.append(Valves(jdata['automate'][name]))
         return
         
 
@@ -73,9 +77,29 @@ class Automation:
         self.file.write(jdata)
         
         return
+    
+    def _save_data(self):
+        jdata = self.df.to_json()
+#        print(json.dumps(jdata))
+        self.file.write(jdata)
+#        print(json.dumps(self.df.to_dict()))
+    
     def _timer(self):
         # Read Licor Data
         
+        data = self.licor.get_data()
+        t = time.strftime('%Y/%m/%d %H:%M:%S')
+#        print(type(data))
+#        print(data)
+        data['time'] = t
+        data['gas'] = self._current_gas
+        try:
+            self.df = self.df.append(data,ignore_index=True)
+        except:
+#            self.df = pd.DataFrame()
+            self.df = data
+        self.df
+#        print(self.df)
         # Save Licor Data
         pass
     
@@ -91,8 +115,10 @@ if __name__ == '__main__':
     ## Load the config file
     
     with open('config.json') as json_data:
-        config = pd.read_json('config.json')
+        config = json.load(json_data)
         print(config)
+#        config = pd.read_json('config.json')
+#        print(config)
 
     ## Setup
     sensor = Automation("COM1","Test",config)
@@ -100,13 +126,13 @@ if __name__ == '__main__':
     
 #    size
     
+    for i in range(0,5):
+        sensor._timer()
+    
+    print(sensor.df)
     
     
     
-    
-    
-    
-    
-    
+    sensor._save_data()
     sensor.licor.close()
     sensor.file.close()

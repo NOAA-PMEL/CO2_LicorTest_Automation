@@ -38,7 +38,7 @@ def etree_to_dict(t):
 class XML2DataFrame:
 
     def __init__(self, xml_data):
-        print(xml_data)
+#        print(xml_data)
         self.root = ET.XML(xml_data)
 
     def parse_root(self, root):
@@ -68,6 +68,7 @@ class Licor:
         self.ser.timeout = 2.5
         self.filename = filename
         self.model = model
+        self._data_streaming = False
 #        self.ss = "<" + self.model + ">"
 #        self.ee = "</" + self.model + ">"
         
@@ -102,7 +103,7 @@ class Licor:
 #        self._check_ack(line.decode())
         self._check_ack()
         
-        
+    
     def set_span(self,span,ppm):
         
         # Stop the data stream and clear the buffer 
@@ -156,18 +157,27 @@ class Licor:
         data_xml = ET.XML(data)
         return etree_to_dict(data_xml)
     
+    def get_data(self):
+        if(self._data_streaming != True):
+            self._start_data()
+        
+        data = self.ser.readline()
+        data = data.decode()
+        xml2df = XML2DataFrame(data)
+        xml_dataframe = xml2df.process_data()
+        return xml_dataframe
+        
     def _start_data(self, rate = 1.0):
         sendstr = "<li820><cfg><outrate>" + str(rate) + "</outrate></cfg></li820>"
-#        print(sendstr)
         self.ser.write(sendstr.encode())
-#        time.sleep(0.5)
-#        line = self.ser.readline()
-#        self._check_ack(line.decode())
         self._check_ack()
+        self._data_streaming = True
+        
     def _stop_data(self):
         sendstr = "<li820><cfg><outrate>0.0</outrate></cfg></li820>"
         self.ser.write(sendstr.encode())
         self._check_ack()
+        self._data_streaming = False
         
     def _check_ack(self):
 #        time.sleep(1.0)
@@ -191,7 +201,7 @@ class Licor:
         ivolt = "<ivolt>True</ivolt>"
         raw = "<raw>True</raw>"
         echo = "<echo>False</echo>"
-        strip = "<strip>True</strip>"
+        strip = "<strip>False</strip>"
         
         # Create the output string
         sendstr = startstr + co2 + co2abs + h2o + h2oabs + h2odew + cellt + cellp + ivolt + raw + echo + strip + endstr
@@ -205,9 +215,6 @@ class Licor:
         self.ser.write(sendstr.encode())
         
         # Wait for the response
-#        time.sleep(0.5)
-#        line = self.ser.readline()
-#        self._check_ack(line.decode())
         self._check_ack()
         
         
@@ -221,6 +228,7 @@ if __name__ == '__main__':
     #        L.get_system()
 #        L._set_outputs()
         print(L.get_system())
+        print(L.get_data())
 #        L._start_data()
     except Exception as e:
         print("Exception\n")
