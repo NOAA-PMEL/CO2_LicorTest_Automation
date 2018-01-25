@@ -79,15 +79,19 @@ class Automation:
         return
     
     def _save_data(self):
+        
+        self.file.write(',\n')
         jdata = self.df.to_json()
-#        print(json.dumps(jdata))
         self.file.write(jdata)
-#        print(json.dumps(self.df.to_dict()))
+        
+        # @todo Add pretty print?
+
     
     def _timer(self):
         # Read Licor Data
         
         data = self.licor.get_data()
+        
         t = time.strftime('%Y/%m/%d %H:%M:%S')
 #        print(type(data))
 #        print(data)
