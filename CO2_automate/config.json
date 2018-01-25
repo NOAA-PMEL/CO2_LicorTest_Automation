@@ -1,61 +1,63 @@
 { "automate" : {
 		"Path" : ".",
 		"NumCycles" : 1,
-		"Zero" : {
-			"Valve" : 0,
-			"Concentration" : 0,
-			"Flowtime" : "00:01:00",
-			"Dwelltime" : "00:02:00",
-			"Venttime" : "00:01:10"
-		},
-		"Span" : {
-			"Valve" : 7,
-			"Concentration" : 0,
-			"Flowtime" : "00:01:00",
-			"Dwelltime" : "00:02:00",
-			"Venttime" : "00:01:10"
-		},
-		"V1" : {
-			"Valve" : 1,
-			"Concentration" : 0,
-			"Flowtime" : "00:01:00",
-			"Dwelltime" : "00:02:00",
-			"Venttime" : "00:01:10"
-		},
-		"V2" : {
-			"Valve" : 2,
-			"Concentration" : 0,
-			"Flowtime" : "00:01:00",
-			"Dwelltime" : "00:02:00",
-			"Venttime" : "00:01:10"
-		},
-		"V3" : {
-			"Valve" : 3,
-			"Concentration" : 0,
-			"Flowtime" : "00:01:00",
-			"Dwelltime" : "00:02:00",
-			"Venttime" : "00:01:10"
-		},
-		"V4" : {
-			"Valve" : 4,
-			"Concentration" : 0,
-			"Flowtime" : "00:01:00",
-			"Dwelltime" : "00:02:00",
-			"Venttime" : "00:01:10"
-		},
-		"V5" : {
-			"Valve" : 5,
-			"Concentration" : 0,
-			"Flowtime" : "00:01:00",
-			"Dwelltime" : "00:02:00",
-			"Venttime" : "00:01:10"
-		},
-		"V6" : {
-			"Valve" : 6,
-			"Concentration" : 0,
-			"Flowtime" : "00:01:00",
-			"Dwelltime" : "00:02:00",
-			"Venttime" : "00:01:10"
+		"Gases" : {
+			"Zero" : {
+				"Valve" : 0,
+				"Concentration" : 0,
+				"Flowtime" : "00:01:00",
+				"Dwelltime" : "00:02:00",
+				"Venttime" : "00:01:10"
+			},
+			"Span" : {
+				"Valve" : 7,
+				"Concentration" : 2000,
+				"Flowtime" : "00:01:00",
+				"Dwelltime" : "00:02:00",
+				"Venttime" : "00:01:10"
+			},
+			"V1" : {
+				"Valve" : 1,
+				"Concentration" : 10,
+				"Flowtime" : "00:01:00",
+				"Dwelltime" : "00:02:00",
+				"Venttime" : "00:01:10"
+			},
+			"V2" : {
+				"Valve" : 2,
+				"Concentration" : 20,
+				"Flowtime" : "00:01:00",
+				"Dwelltime" : "00:02:00",
+				"Venttime" : "00:01:10"
+			},
+			"V3" : {
+				"Valve" : 3,
+				"Concentration" : 30,
+				"Flowtime" : "00:01:00",
+				"Dwelltime" : "00:02:00",
+				"Venttime" : "00:01:10"
+			},
+			"V4" : {
+				"Valve" : 4,
+				"Concentration" : 40,
+				"Flowtime" : "00:01:00",
+				"Dwelltime" : "00:02:00",
+				"Venttime" : "00:01:10"
+			},
+			"V5" : {
+				"Valve" : 5,
+				"Concentration" : 50,
+				"Flowtime" : "00:01:00",
+				"Dwelltime" : "00:02:00",
+				"Venttime" : "00:01:10"
+			},
+			"V6" : {
+				"Valve" : 6,
+				"Concentration" : 60,
+				"Flowtime" : "00:01:00",
+				"Dwelltime" : "00:02:00",
+				"Venttime" : "00:01:10"
+			}
 		}
 	}
 }

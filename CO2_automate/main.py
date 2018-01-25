@@ -12,6 +12,8 @@ import time
 import datetime
 import pandas as pd
 import json
+import threading
+from operator import itemgetter
 from licor_li820 import *
 
 
@@ -34,7 +36,7 @@ class Valves:
         
 
 class Automation:
-    def  __init__(self,port,filename,jdata):
+    def  __init__(self,port,filename,config):
         self.licor = Licor(port,"LI820",filename)
         self.licor.close()
         self.licor.open()
@@ -45,34 +47,49 @@ class Automation:
         self.gas_time = [None]*8
         self.vent_time = []
         
-        self._zero = Valves(jdata['automate']['Zero'])
-        self._span = Valves(jdata['automate']['Span'])
+        self._zero = []#Valves(jdata['automate']['Zero'])
+        self._span = []#Valves(jdata['automate']['Span'])
         self._valve = []
         
-        self._current_gas = '10ppm'
+        self._current_gas = '5ppm'
         
         # Dataframe
-#        self.df = pd.DataFrame()
-        for i in range(0,len(config['automate'])-4):
-            name = 'V' + str(i+1)
-            self._valve.append(Valves(jdata['automate'][name]))
-        return
-        
+#        for i in range(0,len(config['automate']['Gases'])):
+#            name = 'V' + str(i+1)
+#            self._valve.append(Valves(jdata['automate']['Gases'][name]))
+#        return
+#    
+#        self._zero = config['automate']['Gases']['Zero']
+#        self._span = config['automate']['Gases']['Span']
+#        self._current_valve = []
+        i=0
+#        for c in config['automate']['Gases']:
+        for c in sorted(config['automate']['Gases'].values(),key=itemgetter('Valve')):
+#            self._valve.append(Valves(config['automate']['Gases'][c]))
+            self._valve.append(Valves(c))
+            
+        self._zero = config['automate']['Gases']['Zero']
+        self._span = config['automate']['Gases']['Span']
 
     def zero(self):
         pass
-        # Turn data off
-#        self.licor.
-    def span(self):
-        pass
+#        # Turn data off
+##        self.licor.
+#    def span(self):
+#        pass
+#    
+#    def valve(self,valve):
+#        pass
     
     def _create_file(self,filename):
         i = 0
         while(os.path.exists(filename+"%s.json" % i)):
             i += 1
         self.file = open(filename +"%s.json" % i, 'w')
-            
-        jdata = json.dumps(self._sys,ensure_ascii=False,sort_keys=False,indent=4)
+        
+        temp = {'System Settings':self._sys}
+#        jdata = json.dumps(self._sys,ensure_ascii=False,sort_keys=False,indent=4)
+        jdata = json.dumps(temp,ensure_ascii=False,sort_keys=False,indent=4)
         print(jdata)
         self.file.write(jdata)
         
@@ -89,12 +106,10 @@ class Automation:
     
     def _timer(self):
         # Read Licor Data
-        
         data = self.licor.get_data()
         
         t = time.strftime('%Y/%m/%d %H:%M:%S')
-#        print(type(data))
-#        print(data)
+
         data['time'] = t
         data['gas'] = self._current_gas
         try:
@@ -112,28 +127,26 @@ class Automation:
 
 if __name__ == '__main__':
     
-    
-
-    
-    
     ## Load the config file
-    
     with open('config.json') as json_data:
         config = json.load(json_data)
         print(config)
-#        config = pd.read_json('config.json')
-#        print(config)
 
     ## Setup
     sensor = Automation("COM1","Test",config)
     
+    ## Zero
+    ## Open the Zero Valve & Valve 9 and wait, then set span in Licor
     
-#    size
+    ## Span
+    ## Open the Span Valve & Valve 9 and wait, then set span in Licor
     
+##    size
+#    
     for i in range(0,5):
         sensor._timer()
     
-    print(sensor.df)
+#    print(sensor.df)
     
     
     
