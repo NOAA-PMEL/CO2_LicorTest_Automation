@@ -44,7 +44,7 @@ class VM2000():
 
     def VMCloseValve(self, valve):
     
-        print("Close: " + str(valve))
+        print("Close: " + str(valve),end="")
         #Pass Valve Number to be addressed.
         self.ValveAddress(valve)
         #Pulse In2 for addressed Valve
@@ -55,7 +55,7 @@ class VM2000():
         self.d.getFeedback(u3.BitStateWrite(IONumber=11, State = 0))
         
     def VMOpenValve(self, valve):
-        print("Open: " + str(valve))
+        print("Open: " + str(valve),end="")
         #Pass Valve Number to be addressed.
         self.ValveAddress(valve)
         #Pulse In2 for addressed Valve

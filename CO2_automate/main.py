@@ -39,54 +39,123 @@ class Valves:
     
 class Automation:
     def  __init__(self,port,filename,config):
+        ## Create the Licor sensor object, open the port and get the system configurations
         self.licor = Licor(port,"LI820",filename)
         self.licor.close()
         self.licor.open()
         self._sys = self.licor.get_system()
         
+        ## Populate variables from the config file values
         self._savefile = os.path.join(config['automate']['Path'],filename)
         self.num_repeats = int(config['automate']['NumCycles'])
-        
-#        self._create_file(filename)
+        x = time.strptime(config['automate']['CycleDelay'],"%H:%M:%S")
+        self._cycledelay = datetime.timedelta(hours=x.tm_hour,minutes=x.tm_min,seconds=x.tm_sec).total_seconds()
+        ## Create the test save file
         self._create_file(self._savefile)
         
-        
-        self.gas_time = [None]*8
-        self.vent_time = []
-        
-        self._zero_valve = []#Valves(jdata['automate']['Zero'])
-        self._span_valve = []#Valves(jdata['automate']['Span'])
+        ## Create the valve objects
         self._valve = []
-        
-        self._current_gas = '5ppm'
-        
-        # Dataframe
-#        for i in range(0,len(config['automate']['Gases'])):
-#            name = 'V' + str(i+1)
-#            self._valve.append(Valves(jdata['automate']['Gases'][name]))
-#        return
-#    
-#        self._zero = config['automate']['Gases']['Zero']
-#        self._span = config['automate']['Gases']['Span']
-#        self._current_valve = []
-        i=0
-#        for c in config['automate']['Gases']:
         for c in sorted(config['automate']['Gases'].values(),key=itemgetter('Valve')):
-#            self._valve.append(Valves(config['automate']['Gases'][c]))
             self._valve.append(Valves(c))
             
-        self._zero_valve = config['automate']['Gases']['Zero']
-        self._span_valve = config['automate']['Gases']['Span']
-
-    def zero(self):
+        self._zero_valve = Valves(config['automate']['Gases']['Zero'])
+        self._span_valve = Valves(config['automate']['Gases']['Span'])
+        
+        ## Create the 
+        self._current_gas = '5ppm'
+        
+        ## Create a variable for the vale to run
+        self._current_valve = self._zero_valve
+        
+        return
+    
+    def stop(self):
+        self.licor.close()
+        self.file.close()
+    
+    def run(self):
+        
+        ## Zero the system
+        self._zero()
+        
+        ## Span the system
+        self._span()
+        
+        ## Run through the list of valves and operate them
+        for i in range(self.num_repeats):
+            print("\n** Run #%d" % (i+1))
+            for valve in self._valve:
+                if( (valve.valve != self._zero_valve.valve) and (valve.valve != self._span_valve.valve)):
+#                    print("Valve %d\n"%valve.valve)
+                    
+                    ## Set the valve
+                    self._current_valve = valve
+                    
+                    ## Start running the collection
+                    self._run_valve(valve)
+                    
+                    ## Save the data
+                    self._save_data()
+                    
+            ## Read the values for the zero gas
+            self._current_valve = self._zero_valve
+            self._run_valve(self._zero_valve)
+            self._save_data()
+            
+            ## Read the values for the span gas
+            self._current_valve = self._span_valve
+            self._run_valve(self._span_valve)
+            self._save_data()
+            
+            
+            ## Delay if needed
+            self.licor._stop_data()
+            dt = datetime.datetime.utcnow() + datetime.timedelta(seconds=self._cycledelay)
+            while(datetime.datetime.utcnow() < dt):
+                time.sleep(1)
+                
+        return
+    
+    def _run_valve(self,valve):
+        print("\n")
+        # Set the valve
+        syscontrol.OpenValve(valve.valve)
+        # while time < flow time Read the data every second
+        dt = datetime.datetime.utcnow() + datetime.timedelta(seconds=valve.flow)
+        while(datetime.datetime.utcnow() < dt):
+            print('.',end="")
+            self._get_data()
+        
+        print("\n",end="")
+        # Close the valve
+        syscontrol.CloseValve(valve.valve)
+        # while time < dwell time Read the data every second
+        dt = datetime.datetime.utcnow() + datetime.timedelta(seconds=valve.dwell)
+        while(datetime.datetime.utcnow() < dt):
+            print('.',end="")
+            self._get_data()
+            
+    def _zero(self):
         pass
 #        # Turn data off
 ##        self.licor.
-#    def span(self):
-#        pass
+    def _span(self):
+        pass
 #    
 #    def valve(self,valve):
 #        pass
+    
+    def _close_all_valves(self):
+        syscontrol.CloseValve(0)
+        syscontrol.CloseValve(1)
+        syscontrol.CloseValve(2)
+        syscontrol.CloseValve(3)
+        syscontrol.CloseValve(4)
+        syscontrol.CloseValve(5)
+        syscontrol.CloseValve(6)
+        syscontrol.CloseValve(7)
+        syscontrol.CloseValve(8)
+        return
     
     def _create_file(self,filename):
         i = 0
@@ -106,28 +175,30 @@ class Automation:
         self.file.write(',\n')
         jdata = self.df.to_json()
         # @todo Replace Gases with Gas X or Valve x
-        temp = '{\"Gases\":'  # '{\"Gas %s\":' % self._current_valve.valve
+#        temp = '{\"Gases\":'  
+        temp = '{\"Gas %s\":' % self._current_valve.valve
         jdata = temp + jdata + '}'
         self.file.write(jdata)
         
         # @todo Add pretty print?
 
-    
-    def _timer(self):
+        del(self.df)
+    def _get_data(self):
         # Read Licor Data
         data = self.licor.get_data()
         
+        ## Add the time to the data
         t = time.strftime('%Y/%m/%d %H:%M:%S')
-
         data['time'] = t
-        data['gas'] = self._current_gas
+        
+        ## Add the current gas to the data
+        data['gas'] = self._current_valve.concentration
         try:
             self.df = self.df.append(data,ignore_index=True)
         except:
             self.df = data
-        self.df
-        # Save Licor Data
-        pass
+        
+        return
     
     def _set_timer(self,seconds):
         pass
@@ -137,26 +208,16 @@ if __name__ == '__main__':
     ## Load the config file
     with open('config.json') as json_data:
         config = json.load(json_data)
-        print(config)
 
     ## Setup
     sensor = Automation("COM1","Test",config)
     
-    ## Zero
-    ## Open the Zero Valve & Valve 9 and wait, then set span in Licor
-    
-    ## Span
-    ## Open the Span Valve & Valve 9 and wait, then set span in Licor
-    
-##    size
-#    
-    for i in range(0,5):
-        sensor._timer()
-    
-#    print(sensor.df)
+    ## Run the test
+    sensor.run()
+
+    ## Close down
+    sensor.stop()
     
     
     
-    sensor._save_data()
-    sensor.licor.close()
-    sensor.file.close()
+    
