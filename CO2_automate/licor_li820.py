@@ -115,7 +115,7 @@ class Licor:
         time.sleep(0.5)
         
         # Create the date string and xml grammar for the command 
-        date  = time.strftime("%d-%m-%y",time.gmtime())
+        date  = time.strftime("%m-%d-%y",time.gmtime())
         spanstr = []
         if(span == 1):
             spanstr = "co2span>"
@@ -123,7 +123,7 @@ class Licor:
             spanstr = "co2span2>"
             
 #        xmlstr = "<li820><cal><" + spanstr + date + "</" + spanstr + "<co2span>" + str(ppm) + "</co2span></cal></li820>"
-        xmlstr = "<li820><cal><date>" + date + "</date><" + spanstr + str(ppm) + "</" + spanstr + "</cal><li820>\r\n"
+        xmlstr = "<li820><cal><date>" + date + "</date><" + spanstr + "true</" + spanstr + "</cal></li820>\r\n"
         print(xmlstr)
         # Flush the buffer and write
         self.ser.flush()
