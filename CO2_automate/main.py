@@ -7,12 +7,11 @@ Created on Tue Jan 23 12:31:48 2018
 
 import sys
 import os
-import serial
+#import serial
 import time
 import datetime
 import pandas as pd
 import json
-import threading
 from operator import itemgetter
 
 import syscontrol
@@ -35,12 +34,19 @@ class Valves:
         self.dwell = datetime.timedelta(hours=x.tm_hour,minutes=x.tm_min,seconds=x.tm_sec).total_seconds()
         x = time.strptime(data['Venttime'],"%H:%M:%S")
         self.vent = datetime.timedelta(hours=x.tm_hour,minutes=x.tm_min,seconds=x.tm_sec).total_seconds()
-        
-    
+        try:
+            x = time.strptime(data['Prep'],"%H:%M:%S")
+            self.prep = datetime.timedelta(hours=x.tm_hour,minutes=x.tm_min,seconds=x.tm_sec).total_seconds()
+            x = time.strptime(data['Cal'],"%H:%M:%S")
+            self.cal = datetime.timedelta(hours=x.tm_hour,minutes=x.tm_min,seconds=x.tm_sec).total_seconds()
+        except:
+            pass
 class Automation:
     def  __init__(self,port,filename,config):
         ## Create the Licor sensor object, open the port and get the system configurations
         self.licor = Licor(port,"LI820",filename)
+        
+        self.licor.ser.close()
         self.licor.close()
         self.licor.open()
         self._sys = self.licor.get_system()
@@ -72,14 +78,15 @@ class Automation:
     def stop(self):
         self.licor.close()
         self.file.close()
+        return
     
     def run(self):
         
-        ## Zero the system
-        self._zero()
-        
-        ## Span the system
-        self._span()
+#        ## Zero the system
+#        self._zero()
+#        
+#        ## Span the system
+#        self._span()
         
         ## Run through the list of valves and operate them
         for i in range(self.num_repeats):
@@ -134,17 +141,44 @@ class Automation:
         while(datetime.datetime.utcnow() < dt):
             print('.',end="")
             self._get_data()
+        return
             
-    def _zero(self):
-        pass
-#        # Turn data off
-##        self.licor.
-    def _span(self):
-        pass
-#    
-#    def valve(self,valve):
-#        pass
-    
+    def zero(self):
+        print("\nZero: Start Flow",end="")
+        syscontrol.OpenValve(self._zero_valve.valve)
+        dt = datetime.datetime.utcnow() + datetime.timedelta(seconds=self._zero_valve.prep)
+        while(datetime.datetime.utcnow() < dt):
+            time.sleep(1)
+            print('.',end="")
+        
+        print("\nZerp: Stop Flow", end="")
+        syscontrol.CloseValve(self._zero_valve.valve)
+        dt = datetime.datetime.utcnow() + datetime.timedelta(seconds=self._zero_valve.cal)
+        while(datetime.datetime.utcnow() < dt):
+            time.sleep(1)
+            print('.',end="")
+        print("\nZero: Set Licor");
+        self.licor.set_zero()
+        return
+        
+    def span(self):
+        print("\nSpan: Start Flow",end="")
+        syscontrol.OpenValve(self._span_valve.valve)
+        dt = datetime.datetime.utcnow() + datetime.timedelta(seconds=self._span_valve.prep)
+        while(datetime.datetime.utcnow() < dt):
+            time.sleep(1)
+            print('.',end="")
+        
+        print("\nSpan: Stop Flow", end="")
+        syscontrol.CloseValve(self._span_valve.valve)
+        dt = datetime.datetime.utcnow() + datetime.timedelta(seconds=self._span_valve.cal)
+        while(datetime.datetime.utcnow() < dt):
+            time.sleep(1)
+            print('.',end="")
+        print("\nSpan: Set Licor");
+        self.licor.set_span(1,self._span_valve.concentration)
+
+        return
     def _close_all_valves(self):
         syscontrol.CloseValve(0)
         syscontrol.CloseValve(1)
@@ -166,7 +200,7 @@ class Automation:
         temp = {'Licor Settings':self._sys}
 #        jdata = json.dumps(self._sys,ensure_ascii=False,sort_keys=False,indent=4)
         jdata = json.dumps(temp,ensure_ascii=False,sort_keys=False,indent=4)
-        print(jdata)
+#        print(jdata)
         self.file.write(jdata)
         
         return
@@ -183,6 +217,8 @@ class Automation:
         # @todo Add pretty print?
 
         del(self.df)
+        return
+    
     def _get_data(self):
         # Read Licor Data
         data = self.licor.get_data()
@@ -211,6 +247,13 @@ if __name__ == '__main__':
 
     ## Setup
     sensor = Automation("COM1","Test",config)
+    
+    ## Zero
+#    sensor.zero()
+    
+    ## Span
+    sensor.span()
+    ## Read the Licor settings
     
     ## Run the test
     sensor.run()

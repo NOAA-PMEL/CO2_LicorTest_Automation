@@ -24,7 +24,7 @@ class VM2000():
         self.d.configIO(FIOAnalog=fios, EIOAnalog=eios)
         
         self.d.getFeedback(u3.PortDirWrite(Direction=[0, 0, 0], WriteMask=[0, 0, 15]))
-        print("Before Feedback")
+#        print("Before Feedback")
         #Pin 0 (FIO0) Hold low to select Valves 0-15 on the Valve Master 2000 Board
         self.d.getFeedback(u3.BitStateWrite(IONumber=8, State = 0))
         #Pin 1 (FIO1) Hold low to enable output
@@ -38,7 +38,7 @@ class VM2000():
         self.d.getFeedback(u3.BitStateWrite(IONumber=14, State = 0))
         self.d.getFeedback(u3.BitStateWrite(IONumber=15, State = 0))
         
-        print("After Feedback")
+#        print("After Feedback")
 
 
 

@@ -8,14 +8,18 @@
 				"Concentration" : 0,
 				"Flowtime" : "00:00:02",
 				"Dwelltime" : "00:00:03",
-				"Venttime" : "00:01:10"
+				"Venttime" : "00:01:10",
+				"Prep" : "00:00:00",
+				"Cal" : "00:00:00"
 			},
 			"Span" : {
 				"Valve" : 7,
 				"Concentration" : 2000,
 				"Flowtime" : "00:00:02",
 				"Dwelltime" : "00:00:03",
-				"Venttime" : "00:01:10"
+				"Venttime" : "00:01:10",
+				"Prep" : "00:00:00",
+				"Cal" : "00:00:00"
 			},
 			"V1" : {
 				"Valve" : 1,
