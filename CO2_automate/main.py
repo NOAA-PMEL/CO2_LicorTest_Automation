@@ -16,6 +16,7 @@ from operator import itemgetter
 
 import syscontrol
 from licor_li820 import *
+from serialports import *
 
 
 
@@ -32,8 +33,8 @@ class Valves:
         self.flow = datetime.timedelta(hours=x.tm_hour,minutes=x.tm_min,seconds=x.tm_sec).total_seconds()
         x = time.strptime(data['Dwelltime'],"%H:%M:%S")
         self.dwell = datetime.timedelta(hours=x.tm_hour,minutes=x.tm_min,seconds=x.tm_sec).total_seconds()
-        x = time.strptime(data['Venttime'],"%H:%M:%S")
-        self.vent = datetime.timedelta(hours=x.tm_hour,minutes=x.tm_min,seconds=x.tm_sec).total_seconds()
+#        x = time.strptime(data['Venttime'],"%H:%M:%S")
+#        self.vent = datetime.timedelta(hours=x.tm_hour,minutes=x.tm_min,seconds=x.tm_sec).total_seconds()
         try:
             x = time.strptime(data['Prep'],"%H:%M:%S")
             self.prep = datetime.timedelta(hours=x.tm_hour,minutes=x.tm_min,seconds=x.tm_sec).total_seconds()
@@ -127,12 +128,17 @@ class Automation:
             self._run_valve(self._span_valve)
             self._save_data()
             
+            ## Stop Licor Streaming
+            self.licor._stop_data()
+            
+            ## Make sure all valves are closed
+            self._close_all_valves()
             
             ## Delay if needed
-            self.licor._stop_data()
-            dt = datetime.datetime.utcnow() + datetime.timedelta(seconds=self._cycledelay)
-            while(datetime.datetime.utcnow() < dt):
-                time.sleep(1)
+            if(self.num_repeats > 0):
+                dt = datetime.datetime.utcnow() + datetime.timedelta(seconds=self._cycledelay)
+                while(datetime.datetime.utcnow() < dt):
+                    time.sleep(1)
            
         
         return
@@ -256,26 +262,44 @@ class Automation:
         pass
 
 if __name__ == '__main__':
+    print((len(sys.argv)))
+    if(len(sys.argv) == 1):
+        ports = Find_Serial()
+        i=0
+        print("Select Licor Serial port from list:")
+        for port in ports:
+            print("%s - " % (i+1) + port)
+            i += 1
+        pval = input("Licor Serial Port = ")
+        pval = int(pval) - 1
+        print(ports[pval] + " selected")
+        licorPort = ports[pval]
+    else:
+        licorPort = sys.argv[1]
     
-    ## Load the config file
-    with open('config.json') as json_data:
-        config = json.load(json_data)
-
-    ## Setup
-    sensor = Automation("COM1","Test",config)
+    print(licorPort)
+    try:
+        ## Load the config file
+        print("Loading Config File")
+        with open('config.json') as json_data:
+            config = json.load(json_data)
     
-    ## Zero
-#    sensor.zero()
+        ## Setup
+        print("Starting Test")
+        sensor = Automation(licorPort,"Test",config)
+        
+        
+        ## Run the test
+        sensor.run()
     
-    ## Span
-#    sensor.span()
-    ## Read the Licor settings
-    
-    ## Run the test
-    sensor.run()
+    except Exception as e:
+        print(e)
 
     ## Close down
-    sensor.stop()
+    try:
+        sensor.stop()
+    except:
+        pass
     
     
     
