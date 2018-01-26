@@ -161,14 +161,14 @@ class Automation:
         return
             
     def zero(self):
-        print("\nZero: Start Flow",end="")
+        print("\nZero: Start Flow ",end="")
         syscontrol.OpenValve(self._zero_valve.valve)
         dt = datetime.datetime.utcnow() + datetime.timedelta(seconds=self._zero_valve.prep)
         while(datetime.datetime.utcnow() < dt):
             time.sleep(1)
             print('.',end="")
         
-        print("\nZerp: Stop Flow", end="")
+        print("\nZerp: Stop Flow ", end="")
         syscontrol.CloseValve(self._zero_valve.valve)
         dt = datetime.datetime.utcnow() + datetime.timedelta(seconds=self._zero_valve.cal)
         while(datetime.datetime.utcnow() < dt):
@@ -179,14 +179,14 @@ class Automation:
         return
         
     def span(self):
-        print("\nSpan: Start Flow",end="")
+        print("\nSpan: Start Flow ",end="")
         syscontrol.OpenValve(self._span_valve.valve)
         dt = datetime.datetime.utcnow() + datetime.timedelta(seconds=self._span_valve.prep)
         while(datetime.datetime.utcnow() < dt):
             time.sleep(1)
             print('.',end="")
         
-        print("\nSpan: Stop Flow", end="")
+        print("\nSpan: Stop Flow ", end="")
         syscontrol.CloseValve(self._span_valve.valve)
         dt = datetime.datetime.utcnow() + datetime.timedelta(seconds=self._span_valve.cal)
         while(datetime.datetime.utcnow() < dt):
