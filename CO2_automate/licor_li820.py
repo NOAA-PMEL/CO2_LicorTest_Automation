@@ -116,7 +116,7 @@ class Licor:
                     
 #        xmlstr = "<li820><cal><" + spanstr + date + "</" + spanstr + "<co2span>" + str(ppm) + "</co2span></cal></li820>"
         xmlstr = "<li820><cal><date>" + date + "</date><co2zero>true</co2zero></cal></li820>\r\n"
-        print(xmlstr)
+#        print(xmlstr)
         # Flush the buffer and write
         self.ser.flush()
         self.ser.write(xmlstr.encode())
@@ -129,23 +129,20 @@ class Licor:
         self.ser.flush()
         
         valid = False
-        for i in range(0,20):
-            print("Span Attempt: %d" % i)
-            time.sleep(3)
-            readline = self.ser.readlines()
-            if(len(readline)>0):
-                for line in readline:
-                    line = line.decode()
-                    if(line.find("error")>-1):
+        print("Zero: Wait for Licor Response ",end="")
+        for i in range(0,60):
+            print(".",end="")
+            line = self.ser.readline().decode()
+            if(len(line)>0):
+                if(line.find("error")>-1):
                         valid = False
-                    elif(len(line)==0):
-                        valid = False
-                    else:
-                        valid = True
-                        break
-                
-            if(valid == True):
-                break;
+                elif(len(line)==0):
+                    valid = False
+                else:
+                    valid = True
+                    break
+        
+        print("\nZero Complete\n")
                     
         assert(valid == True)
         return
@@ -165,7 +162,7 @@ class Licor:
             
 #        xmlstr = "<li820><cal><" + spanstr + date + "</" + spanstr + "<co2span>" + str(ppm) + "</co2span></cal></li820>"
         xmlstr = "<li820><cal><date>" + date + "</date><" + spanstr + "true</" + spanstr + "</cal></li820>\r\n"
-        print(xmlstr)
+#        print(xmlstr)
         # Flush the buffer and write
         self.ser.flush()
         self.ser.write(xmlstr.encode())
@@ -193,7 +190,7 @@ class Licor:
 #                if(valid == True):
 #                break;
         
-        print("")
+        print("\nSpan Complete\n")
 #        for i in range(0,20):
 #            print("Span Attempt: %d" % i)
 #            time.sleep(3)
@@ -297,7 +294,7 @@ class Licor:
 #        assert(self._data_streaming == True)
     def _check_streaming(self):
         line = self.ser.readline()
-        print(line)
+#        print(line)
         assert(len(line) > 0)
     def _check_ack(self,numlines=0):
         

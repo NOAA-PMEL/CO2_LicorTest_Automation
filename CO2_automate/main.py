@@ -49,7 +49,7 @@ class Automation:
         self.licor.ser.close()
         self.licor.close()
         self.licor.open()
-        self._sys = self.licor.get_system()
+#        self._sys = self.licor.get_system()
         
         ## Populate variables from the config file values
         self._savefile = os.path.join(config['automate']['Path'],filename)
@@ -73,18 +73,37 @@ class Automation:
         ## Create a variable for the vale to run
         self._current_valve = self._zero_valve
         
+        ## Run the Zero
+        self.zero()
+        
+        ## Run the Span
+        self.span()
+        
+        ## Get the system info
+        self.sysinfo()
+        
+        return
+
+    def sysinfo(self):
+        self._sys = self.licor.get_system()
+        temp = {'Licor Settings':self._sys}
+        jdata = json.dumps(temp,ensure_ascii=False,sort_keys=False,indent=4)
+        self.file.write(jdata)
         return
     
     def stop(self):
+        self._close_all_valves()
         self.licor.close()
         self.file.close()
         return
     
     def run(self):
         ## Run through the list of valves and operate them
-        self.licor._start_data()
         for i in range(self.num_repeats):
-            print("\n** Run #%d" % (i+1))
+            self.licor._start_data()
+            time.sleep(1)
+            self.licor.ser.flush()
+            print("\n******** Run #%d********" % (i+1))
             for valve in self._valve:
                 if( (valve.valve != self._zero_valve.valve) and (valve.valve != self._span_valve.valve)):
 #                    print("Valve %d\n"%valve.valve)
@@ -110,16 +129,16 @@ class Automation:
             
             
             ## Delay if needed
-            
+            self.licor._stop_data()
             dt = datetime.datetime.utcnow() + datetime.timedelta(seconds=self._cycledelay)
             while(datetime.datetime.utcnow() < dt):
                 time.sleep(1)
            
-        self.licor._stop_data()
+        
         return
     
     def _run_valve(self,valve):
-        print("\n")
+#        print("\n")
         # Set the valve
         syscontrol.OpenValve(valve.valve)
         # while time < flow time Read the data every second
@@ -136,6 +155,7 @@ class Automation:
         while(datetime.datetime.utcnow() < dt):
             print('.',end="")
             self._get_data()
+        print("")
         return
             
     def zero(self):
@@ -192,11 +212,11 @@ class Automation:
             i += 1
         self.file = open(filename +"%s.json" % i, 'w')
         
-        temp = {'Licor Settings':self._sys}
-#        jdata = json.dumps(self._sys,ensure_ascii=False,sort_keys=False,indent=4)
-        jdata = json.dumps(temp,ensure_ascii=False,sort_keys=False,indent=4)
-#        print(jdata)
-        self.file.write(jdata)
+#        temp = {'Licor Settings':self._sys}
+##        jdata = json.dumps(self._sys,ensure_ascii=False,sort_keys=False,indent=4)
+#        jdata = json.dumps(temp,ensure_ascii=False,sort_keys=False,indent=4)
+##        print(jdata)
+#        self.file.write(jdata)
         
         return
     
@@ -248,7 +268,7 @@ if __name__ == '__main__':
 #    sensor.zero()
     
     ## Span
-    sensor.span()
+#    sensor.span()
     ## Read the Licor settings
     
     ## Run the test

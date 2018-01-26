@@ -1,6 +1,6 @@
 { "automate" : {
 		"Path" : ".",
-		"NumCycles" : 2,
+		"NumCycles" : 4,
 		"CycleDelay" : "00:00:08",
 		"Gases" : {
 			"Zero" : {
@@ -9,8 +9,8 @@
 				"Flowtime" : "00:00:02",
 				"Dwelltime" : "00:00:03",
 				"Venttime" : "00:01:10",
-				"Prep" : "00:00:00",
-				"Cal" : "00:00:00"
+				"Prep" : "00:00:05",
+				"Cal" : "00:00:05"
 			},
 			"Span" : {
 				"Valve" : 7,
@@ -18,8 +18,8 @@
 				"Flowtime" : "00:00:02",
 				"Dwelltime" : "00:00:03",
 				"Venttime" : "00:01:10",
-				"Prep" : "00:00:00",
-				"Cal" : "00:00:00"
+				"Prep" : "00:00:05",
+				"Cal" : "00:00:05"
 			},
 			"V1" : {
 				"Valve" : 1,
