@@ -38,7 +38,6 @@ def etree_to_dict(t):
 class XML2DataFrame:
 
     def __init__(self, xml_data):
-#        print(xml_data)
         self.root = ET.XML(xml_data)
 
     def parse_root(self, root):
@@ -69,10 +68,7 @@ class Licor:
         self.filename = filename
         self.model = model
         self._data_streaming = False
-#        self.ss = "<" + self.model + ">"
-#        self.ee = "</" + self.model + ">"
-        
-#        self.f = open(filename,'w+');
+        return
             
     def open(self):
         try:
@@ -84,47 +80,30 @@ class Licor:
         self.ser.flush()
         self._set_outputs()
         self.ser.flush()
+        
+        return
     
     def close(self):
         self.ser.close()
-        
+        return
+    
     def set_zero(self):
         # Stop the data stream and clear the buffer 
-#        self._stop_data()
-#        time.sleep(0.5)
-#        
-#        # Create the date string and xml grammar for the command 
-#        date = time.strftime("%Y-%m-%d",time.gmtime())
-#        xmlstr = "<li820><cal><date>" + date + "</date><co2zero>true</co2zero></cal></li820>"
-#        
-#        # Flush the buffer and write
-#        self.ser.flush()
-#        self.ser.write(xmlstr.encode())
-#        
-#        # Wait for the response
-##        time.sleep(1.0)
-##        line = self.ser.readline()
-##        self._check_ack(line.decode())
-#        self._check_ack()
-        
-    # Stop the data stream and clear the buffer 
         self._stop_data()
         time.sleep(0.5)
         
         # Create the date string and xml grammar for the command 
         date  = time.strftime("%m-%d-%y",time.gmtime())
                     
-#        xmlstr = "<li820><cal><" + spanstr + date + "</" + spanstr + "<co2span>" + str(ppm) + "</co2span></cal></li820>"
         xmlstr = "<li820><cal><date>" + date + "</date><co2zero>true</co2zero></cal></li820>\r\n"
-#        print(xmlstr)
         # Flush the buffer and write
         self.ser.flush()
         self.ser.write(xmlstr.encode())
         
         # Wait for the response
         time.sleep(1.0)
-#        line = self.ser.readline()
-#        self._check_ack(line.decode())
+
+        ## Check for ACK
         self._check_ack()
         self.ser.flush()
         
@@ -146,8 +125,8 @@ class Licor:
                     
         assert(valid == True)
         return
+    
     def set_span(self,span,ppm):
-        
         # Stop the data stream and clear the buffer 
         self._stop_data()
         time.sleep(0.5)
@@ -160,17 +139,16 @@ class Licor:
         elif(span==2):
             spanstr = "co2span2>"
             
-#        xmlstr = "<li820><cal><" + spanstr + date + "</" + spanstr + "<co2span>" + str(ppm) + "</co2span></cal></li820>"
         xmlstr = "<li820><cal><date>" + date + "</date><" + spanstr + "true</" + spanstr + "</cal></li820>\r\n"
-#        print(xmlstr)
+
         # Flush the buffer and write
         self.ser.flush()
         self.ser.write(xmlstr.encode())
         
         # Wait for the response
         time.sleep(1.0)
-#        line = self.ser.readline()
-#        self._check_ack(line.decode())
+
+        ## Check for ACK
         self._check_ack()
         self.ser.flush()
         
@@ -187,25 +165,9 @@ class Licor:
                 else:
                     valid = True
                     break
-#                if(valid == True):
-#                break;
+
         
-        print("\nSpan Complete\n")
-#        for i in range(0,20):
-#            print("Span Attempt: %d" % i)
-#            time.sleep(3)
-#            readline = self.ser.readlines()
-#            if(len(readline)>0):
-#                for line in readline:
-#                    line = line.decode()
-#                    if(line.find("error")>-1):
-#                        valid = False
-#                    elif(len(line)==0):
-#                        valid = False
-#                    else:
-#                        valid = True
-#                        break
-                
+        print("\nSpan Complete\n")          
             
                     
         assert(valid == True)
@@ -217,26 +179,18 @@ class Licor:
         
         # Turn data off
         self._stop_data()
-#        self.ser.flush()
-#        time.sleep(2.0)
-        # Read Data from Licor
-#        self.ser.flush()
-        
+
+        ## Query the Licor
         sendstr = "<li820>?</li820>"
         self.ser.write(sendstr.encode())
 
         
         # Read data
-        
         data = self.ser.readline()
         data = data.decode()
         
         # Convert data from XML to JSON
         # Save Data to file
-        # @todo Add save to file
-#        xml2df = XML2DataFrame(data)
-#        xml_dataframe = xml2df.process_data()
-#        return xml_dataframe
         data_xml = ET.XML(data)
         return etree_to_dict(data_xml)
     
@@ -246,18 +200,15 @@ class Licor:
         
         data = self.ser.readline()
         data = data.decode()
-#        print(data)
         xml2df = XML2DataFrame(data)
         xml_dataframe = xml2df.process_data()
         return xml_dataframe
         
     def _start_data(self, rate = 1.0):
-#        sendstr = "<li820><cfg><outrate>" + str(rate) + "</outrate></cfg></li820>\r\n"
         sendstr = "<li820><cfg><outrate>" + str(rate) + "</outrate></cfg></li820>\r\n"
         for i in range(0,3):
             self.ser.flush()
             self.ser.write(sendstr.encode())
-#            self.ser.write(b"\r\n\r\n")
             time.sleep(1)
             try:
                 self._check_ack()
@@ -270,51 +221,18 @@ class Licor:
         
         if(rate > 0.0):
             assert(self._data_streaming == True)
-            
-            
-        
-        
+        return
+    
     def _stop_data(self):
         self._start_data(rate=0.0)
-#        sendstr = "<li820><cfg><outrate>0.0</outrate></cfg></li820>"
-#        for i in range(0,3):
-#            self.ser.flush()
-#            self.ser.write(sendstr.encode())
-##            self.ser.write(sendstr.encode())
-#
-#            time.sleep(1)
-#            try:
-#                self._check_ack()
-#                self._check_streaming()
-#                self._data_streaming = True
-#                break;
-#            except:
-#                self._data_streaming = False
-#        
-#        assert(self._data_streaming == True)
+        return
+    
     def _check_streaming(self):
         line = self.ser.readline()
-#        print(line)
         assert(len(line) > 0)
+        return
+    
     def _check_ack(self,numlines=0):
-        
-#        line = self.ser.readline()
-#        line = line.decode()
-#        line = line.strip("\r\n")
-#        assert(line == "<li820><ack>true</ack></li820>")
-#        self.ser.flush()
-        
-        
-#        time.sleep(1.0)
-        
-#        lines = self.ser.readlines()
-#        print(lines)
-#        valid = False
-#        for line in lines:
-#            line = line.decode()
-#            line = line.strip("\r\n")
-#            if(line == "<li820><ack>true</ack></li820>"):
-#                valid = True
         for i in range(0,5):
             line = self.ser.readline()
             line = line.decode()
@@ -363,18 +281,3 @@ if __name__ == '__main__':
     L = Licor("COM1","LI820","Test")
     L.open()
     L.set_span(1,2000)
-#    try:
-#        L.open()
-#    #        L.set_zero()
-#    #        L.set_span(1,100)
-#    #        L.get_system()
-##        L._set_outputs()
-#        L.set_span(1,2000)
-##        print(L.get_system())
-##        print(L.get_data())
-##        L._start_data()
-#    except Exception as e:
-#        print("Exception\n")
-#        print(e)
-    
-#    L.close()

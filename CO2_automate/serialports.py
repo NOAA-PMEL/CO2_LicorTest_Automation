@@ -15,7 +15,6 @@ def Find_Serial():
     
     if sys.platform.startswith('win'):
         ports = ['COM%s' % (i+1) for i in range(256)]
-        print("Windows")
     elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
         ports = glob.glob('/dev/tty[A-Za-z]*')
     elif sys.platform.startswith('darwin'):
