@@ -1,6 +1,6 @@
 { "automate" : {
 		"Path" : ".",
-		"NumCycles" : 1,
+		"NumCycles" : 2,
 		"CycleDelay" : "00:00:08",
 		"Gases" : {
 			"Zero" : {

@@ -81,14 +81,8 @@ class Automation:
         return
     
     def run(self):
-        
-#        ## Zero the system
-#        self._zero()
-#        
-#        ## Span the system
-#        self._span()
-        
         ## Run through the list of valves and operate them
+        self.licor._start_data()
         for i in range(self.num_repeats):
             print("\n** Run #%d" % (i+1))
             for valve in self._valve:
@@ -116,11 +110,12 @@ class Automation:
             
             
             ## Delay if needed
-            self.licor._stop_data()
+            
             dt = datetime.datetime.utcnow() + datetime.timedelta(seconds=self._cycledelay)
             while(datetime.datetime.utcnow() < dt):
                 time.sleep(1)
-                
+           
+        self.licor._stop_data()
         return
     
     def _run_valve(self,valve):
@@ -220,6 +215,7 @@ class Automation:
         return
     
     def _get_data(self):
+        self.licor.ser.flush()
         # Read Licor Data
         data = self.licor.get_data()
         

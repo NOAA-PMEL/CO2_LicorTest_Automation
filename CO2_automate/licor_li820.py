@@ -65,7 +65,7 @@ class Licor:
         self.ser.port = port
         self.ser.baudrate = 9600
         self.ser.stopbits = 1
-        self.ser.timeout = 2.5
+        self.ser.timeout = 1 #2.5
         self.filename = filename
         self.model = model
         self._data_streaming = False
@@ -90,24 +90,65 @@ class Licor:
         
     def set_zero(self):
         # Stop the data stream and clear the buffer 
+#        self._stop_data()
+#        time.sleep(0.5)
+#        
+#        # Create the date string and xml grammar for the command 
+#        date = time.strftime("%Y-%m-%d",time.gmtime())
+#        xmlstr = "<li820><cal><date>" + date + "</date><co2zero>true</co2zero></cal></li820>"
+#        
+#        # Flush the buffer and write
+#        self.ser.flush()
+#        self.ser.write(xmlstr.encode())
+#        
+#        # Wait for the response
+##        time.sleep(1.0)
+##        line = self.ser.readline()
+##        self._check_ack(line.decode())
+#        self._check_ack()
+        
+    # Stop the data stream and clear the buffer 
         self._stop_data()
         time.sleep(0.5)
         
         # Create the date string and xml grammar for the command 
-        date = time.strftime("%Y-%m-%d",time.gmtime())
-        xmlstr = "<li820><cal><date>" + date + "</date><co2zero>true</co2zero></cal></li820>"
-        
+        date  = time.strftime("%m-%d-%y",time.gmtime())
+                    
+#        xmlstr = "<li820><cal><" + spanstr + date + "</" + spanstr + "<co2span>" + str(ppm) + "</co2span></cal></li820>"
+        xmlstr = "<li820><cal><date>" + date + "</date><co2zero>true</co2zero></cal></li820>\r\n"
+        print(xmlstr)
         # Flush the buffer and write
         self.ser.flush()
         self.ser.write(xmlstr.encode())
         
         # Wait for the response
-#        time.sleep(1.0)
+        time.sleep(1.0)
 #        line = self.ser.readline()
 #        self._check_ack(line.decode())
         self._check_ack()
+        self.ser.flush()
         
-    
+        valid = False
+        for i in range(0,20):
+            print("Span Attempt: %d" % i)
+            time.sleep(3)
+            readline = self.ser.readlines()
+            if(len(readline)>0):
+                for line in readline:
+                    line = line.decode()
+                    if(line.find("error")>-1):
+                        valid = False
+                    elif(len(line)==0):
+                        valid = False
+                    else:
+                        valid = True
+                        break
+                
+            if(valid == True):
+                break;
+                    
+        assert(valid == True)
+        return
     def set_span(self,span,ppm):
         
         # Stop the data stream and clear the buffer 
@@ -137,22 +178,38 @@ class Licor:
         self.ser.flush()
         
         valid = False
-        for i in range(0,6):
-            print("Span Attempt: %d" % i)
-            time.sleep(10)
-            readline = self.ser.readlines()
-            if(len(readline)>0):
-                for line in readline:
-                    if(line.find("error")>-1):
+        print("Span: Wait for Licor Response ",end="")
+        for i in range(0,60):
+            print(".",end="")
+            line = self.ser.readline().decode()
+            if(len(line)>0):
+                if(line.find("error")>-1):
                         valid = False
-                    elif(len(line)==0):
-                        valid = False
-                    else:
-                        valid = True
-                        break
+                elif(len(line)==0):
+                    valid = False
+                else:
+                    valid = True
+                    break
+#                if(valid == True):
+#                break;
+        
+        print("")
+#        for i in range(0,20):
+#            print("Span Attempt: %d" % i)
+#            time.sleep(3)
+#            readline = self.ser.readlines()
+#            if(len(readline)>0):
+#                for line in readline:
+#                    line = line.decode()
+#                    if(line.find("error")>-1):
+#                        valid = False
+#                    elif(len(line)==0):
+#                        valid = False
+#                    else:
+#                        valid = True
+#                        break
                 
-            if(valid == True):
-                break;
+            
                     
         assert(valid == True)
         return
@@ -192,7 +249,7 @@ class Licor:
         
         data = self.ser.readline()
         data = data.decode()
-        print(data)
+#        print(data)
         xml2df = XML2DataFrame(data)
         xml_dataframe = xml2df.process_data()
         return xml_dataframe
@@ -239,10 +296,10 @@ class Licor:
 #        
 #        assert(self._data_streaming == True)
     def _check_streaming(self):
-        lines = self.ser.readlines()
-        print(lines)
-        assert(len(lines[-1]) > 0)
-    def _check_ack(self):
+        line = self.ser.readline()
+        print(line)
+        assert(len(line) > 0)
+    def _check_ack(self,numlines=0):
         
 #        line = self.ser.readline()
 #        line = line.decode()
@@ -251,16 +308,25 @@ class Licor:
 #        self.ser.flush()
         
         
-        time.sleep(1.0)
-        lines = self.ser.readlines()
-        print(lines)
-        valid = False
-        for line in lines:
+#        time.sleep(1.0)
+        
+#        lines = self.ser.readlines()
+#        print(lines)
+#        valid = False
+#        for line in lines:
+#            line = line.decode()
+#            line = line.strip("\r\n")
+#            if(line == "<li820><ack>true</ack></li820>"):
+#                valid = True
+        for i in range(0,5):
+            line = self.ser.readline()
             line = line.decode()
             line = line.strip("\r\n")
+            valid = False
             if(line == "<li820><ack>true</ack></li820>"):
                 valid = True
-        
+                break;
+            
         assert(valid == True)
         self.ser.flush()
         
