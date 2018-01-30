@@ -93,9 +93,12 @@ class Licor:
         time.sleep(0.5)
         
         # Create the date string and xml grammar for the command 
-        date  = time.strftime("%m-%d-%y",time.gmtime())
-                    
-        xmlstr = "<li820><cal><date>" + date + "</date><co2zero>true</co2zero></cal></li820>\r\n"
+#        date  = time.strftime("%m-%d-%y",time.gmtime())
+        date  = time.strftime("%Y-%m-%d",time.gmtime())
+        
+        xmlstr = "<LI820><CAL><DATE>%s</DATE><CO2ZERO>TRUE</CO2ZERO></CAL></LI820>"%date
+#        xmlstr = "<li820><cal><date>" + date + "</date><co2zero>True</co2zero></cal></li820>\r\n"
+#        print(xmlstr)
         # Flush the buffer and write
         self.ser.flush()
         self.ser.write(xmlstr.encode())
@@ -112,6 +115,7 @@ class Licor:
         for i in range(0,60):
             print(".",end="")
             line = self.ser.readline().decode()
+#            print(line)
             if(len(line)>0):
                 if(line.find("error")>-1):
                         valid = False
@@ -132,15 +136,19 @@ class Licor:
         time.sleep(0.5)
         
         # Create the date string and xml grammar for the command 
-        date  = time.strftime("%m-%d-%y",time.gmtime())
+#        date  = time.strftime("%m-%d-%y",time.gmtime())
+        date  = time.strftime("%Y-%m-%d",time.gmtime())
         spanstr = []
         if(span == 1):
-            spanstr = "co2span>"
+            spanstr = "CO2SPAN>"
         elif(span==2):
-            spanstr = "co2span2>"
+            spanstr = "CO2SPAN2>"
             
-        xmlstr = "<li820><cal><date>" + date + "</date><" + spanstr + "true</" + spanstr + "</cal></li820>\r\n"
+        xmlstr = "<LI820><CAL><DATE>" + date + "</DATE><CO2SPAN>%d</CO2SPAN></CAL></LI820>" % int(ppm)
+#        xmlstr = "<li820><cal><date>" + date + "</date><" + spanstr + str(int(round(ppm)))+"</" + spanstr + "</cal></li820>\r\n"
+#        xmlstr = "<LI820><CAL><DATE>" + date + "</DATE><" + spanstr + str(int(round(ppm))+"</" + spanstr + "</CAL></LI820>\r\n"
 
+#        print(xmlstr)
         # Flush the buffer and write
         self.ser.flush()
         self.ser.write(xmlstr.encode())
@@ -157,6 +165,7 @@ class Licor:
         for i in range(0,60):
             print(".",end="")
             line = self.ser.readline().decode()
+#            print(line)
             if(len(line)>0):
                 if(line.find("error")>-1):
                         valid = False
@@ -235,6 +244,7 @@ class Licor:
     def _check_ack(self,numlines=0):
         for i in range(0,5):
             line = self.ser.readline()
+#            print(line)
             line = line.decode()
             line = line.strip("\r\n")
             valid = False
@@ -278,6 +288,7 @@ class Licor:
         
         
 if __name__ == '__main__':
-    L = Licor("COM1","LI820","Test")
+    L = Licor("COM30","LI820","Test")
     L.open()
-    L.set_span(1,2000)
+    L.set_span(1,499.11)
+    L.close()

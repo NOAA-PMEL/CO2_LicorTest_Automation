@@ -26,7 +26,7 @@ class Valves:
         
             
         """
-        self.valve = int(data['Valve'])
+        self.valve = int(data['Valve'])-1
         self.concentration = data['Concentration']
         x = time.strptime(data['Flowtime'],"%H:%M:%S")
         self.flow = datetime.timedelta(hours=x.tm_hour,minutes=x.tm_min,seconds=x.tm_sec).total_seconds()
@@ -86,6 +86,7 @@ class Automation:
         self._sys = self.licor.get_system()
         temp = {'Licor Settings':self._sys}
         jdata = json.dumps(temp,ensure_ascii=False,sort_keys=False,indent=4)
+        print(jdata)
         self.file.write(jdata)
         return
     
@@ -218,6 +219,7 @@ class Automation:
     
     def _save_data(self):
         self.file.write(',\n')
+        print(self.df)
         jdata = self.df.to_json()
         temp = '{\"Gas %s\":' % self._current_valve.valve
         jdata = temp + jdata + '}'
@@ -232,12 +234,15 @@ class Automation:
         # Read Licor Data
         data = self.licor.get_data()
         
+        
         ## Add the time to the data
         t = time.strftime('%Y/%m/%d %H:%M:%S')
         data['time'] = t
         
         ## Add the current gas to the data
         data['gas'] = self._current_valve.concentration
+        
+        
         try:
             self.df = self.df.append(data,ignore_index=True)
         except:
@@ -254,8 +259,10 @@ if __name__ == '__main__':
           
     ## Grab the file path and point towards the config file
     path = os.path.dirname(sys.argv[0])
-    if(path[path.rfind('/')+1:]!="CO2_automate"):
+#    print(path)
+    if(path[path.rfind('/')+1:]!="CO2_automate") :
         path = os.path.join(path,'CO2_automate')
+#    print(path)
     configfile = os.path.join(path,'config.json')\
     
     ## Get the Serial Port
