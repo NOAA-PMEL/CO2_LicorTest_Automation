@@ -1,6 +1,6 @@
 { "automate" : {
 		"Path" : ".",
-		"NumCycles" : 1,
+		"NumCycles" : 2,
 		"CycleDelay" : "00:00:30",
 		"Gases" : {
 			"Zero" : {
@@ -8,58 +8,72 @@
 				"Concentration" : 0,
 				"Flowtime" : "00:01:00",
 				"Dwelltime" : "00:00:20",
-				"Prep" : "00:01:00",
-				"Cal" : "00:00:05"
+				"Prep" : "00:00:30",
+				"Cal" : "00:00:10"
 			},
 			"Span" : {
 				"Valve" : 3,
 				"Concentration" : 499.11,
 				"Flowtime" : "00:01:00",
 				"Dwelltime" : "00:00:20",
-				"Prep" : "00:01:00",
+				"Prep" : "00:00:30",
 				"Cal" : "00:00:10"
 			},
 			"V1" : {
 				"Valve" : 1,
 				"Concentration" : 104.32,
 				"Flowtime" : "00:01:00",
-				"Dwelltime" : "00:00:20"
+				"Dwelltime" : "00:00:20",
+				"Prep" : "00:00:00",
+				"Cal" : "00:00:00"
 			},
 			"V2" : {
 				"Valve" : 2,
 				"Concentration" : 298.71,
 				"Flowtime" : "00:01:00",
-				"Dwelltime" : "00:00:20"
+				"Dwelltime" : "00:00:20",
+				"Prep" : "00:00:00",
+				"Cal" : "00:00:00"
 			},
 			"V4" : {
 				"Valve" : 4,
 				"Concentration" : 732.09,
 				"Flowtime" : "00:01:00",
-				"Dwelltime" : "00:00:20"
+				"Dwelltime" : "00:00:20",
+				"Prep" : "00:00:00",
+				"Cal" : "00:00:00"
 			},
 			"V5" : {
 				"Valve" : 5,
 				"Concentration" : 996.31,
 				"Flowtime" : "00:01:00",
-				"Dwelltime" : "00:00:20"
+				"Dwelltime" : "00:00:20",
+				"Prep" : "00:00:00",
+				"Cal" : "00:00:00"
 			},
 			"V6" : {
 				"Valve" : 6,
 				"Concentration" : 1483.95,
 				"Flowtime" : "00:01:00",
-				"Dwelltime" : "00:00:20"
+				"Dwelltime" : "00:00:20",
+				"Prep" : "00:00:00",
+				"Cal" : "00:00:00"
 			},
 			"V7" : {
 				"Valve" : 7,
 				"Concentration" : 1989.05,
 				"Flowtime" : "00:01:00",
-				"Dwelltime" : "00:00:20"
+				"Dwelltime" : "00:00:20",
+				"Prep" : "00:00:00",
+				"Cal" : "00:00:00"
 			},
 			"V8" : {
 				"Valve" : 8,
 				"Concentration" : 2489.7,
 				"Flowtime" : "00:01:00",
-				"Dwelltime" : "00:00:20"
+				"Dwelltime" : "00:00:20",
+				"Prep" : "00:00:30",
+				"Cal" : "00:00:10"
 			}
 		}
 	}

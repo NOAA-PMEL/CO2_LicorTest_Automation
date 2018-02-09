@@ -87,5 +87,6 @@ def CloseValve(valve):
     ValveMaster.VMCloseValve(valve)
     
 if __name__ == '__main__':              # if we're running file directly and not importing it
-    OpenValve(1)
-    CloseValve(2)
+#    OpenValve(1)
+#    CloseValve(1)
+    syscontrol = VM2000()

@@ -12,6 +12,7 @@ import datetime
 import pandas as pd
 import json
 from operator import itemgetter
+from collections import OrderedDict
 
 import syscontrol
 from licor_li820 import *
@@ -40,7 +41,7 @@ class Valves:
         except:
             pass
 class Automation:
-    def  __init__(self,port,filename,config):
+    def  __init__(self,port,filename,config,high_span):
         ## Create the Licor sensor object, open the port and get the system configurations
         self.licor = Licor(port,"LI820",filename)
         
@@ -54,6 +55,8 @@ class Automation:
         self.num_repeats = int(config['automate']['NumCycles'])
         x = time.strptime(config['automate']['CycleDelay'],"%H:%M:%S")
         self._cycledelay = datetime.timedelta(hours=x.tm_hour,minutes=x.tm_min,seconds=x.tm_sec).total_seconds()
+#        self._co2kspan2 = float(config['automate']['CO2Kspan2'])
+        
         ## Create the test save file
         self._create_file(self._savefile)
         
@@ -65,6 +68,18 @@ class Automation:
         self._zero_valve = Valves(config['automate']['Gases']['Zero'])
         self._span_valve = Valves(config['automate']['Gases']['Span'])
         
+        ## make sure all valves are closed
+        self._close_all_valves()
+        
+        print("\n\n******** ",end="")
+        if(high_span):
+            self._span2_valve = Valves(config['automate']['Gases']['Span2'])
+            print('Three-Point Calibration',end="")
+        else:
+            print('Two-Point Calibration',end="")
+            
+        print(" ********")
+        
         ## Create the 
         self._current_gas = '5ppm'
         
@@ -75,7 +90,13 @@ class Automation:
         self.zero()
         
         ## Run the Span
-        self.span()
+        if(high_span == True):
+            self.span(1)
+            self.span2()
+        else:
+            self.span(0)
+        
+
         
         ## Get the system info
         self.sysinfo()
@@ -97,12 +118,18 @@ class Automation:
         return
     
     def run(self):
+            
         ## Run through the list of valves and operate them
         for i in range(self.num_repeats):
             self.licor._start_data()
             time.sleep(1)
             self.licor.ser.flush()
             print("\n******** Run #%d********" % (i+1))
+            ## Read the values for the zero gas
+            self._current_valve = self._zero_valve
+            self._run_valve(self._zero_valve)
+            self._save_data()
+            
             for valve in self._valve:
                 if( (valve.valve != self._zero_valve.valve) and (valve.valve != self._span_valve.valve)):
                     
@@ -124,6 +151,14 @@ class Automation:
             self._current_valve = self._span_valve
             self._run_valve(self._span_valve)
             self._save_data()
+            
+            ## Read the values for the span2 gas (if it exists)
+            try:
+                self._current_valve = self._span2_valve
+                self._run_valve(self._span2_valve)
+                self._save_data()
+            except:
+                pass
             
             ## Stop Licor Streaming
             self.licor._stop_data()
@@ -169,7 +204,7 @@ class Automation:
             time.sleep(1)
             print('.',end="")
         
-        print("\nZerp: Stop Flow ", end="")
+        print("\nZero: Stop Flow ", end="")
         syscontrol.CloseValve(self._zero_valve.valve)
         dt = datetime.datetime.utcnow() + datetime.timedelta(seconds=self._zero_valve.cal)
         while(datetime.datetime.utcnow() < dt):
@@ -179,7 +214,7 @@ class Automation:
         self.licor.set_zero()
         return
         
-    def span(self):
+    def span(self,span1):
         print("\nSpan: Start Flow ",end="")
         syscontrol.OpenValve(self._span_valve.valve)
         dt = datetime.datetime.utcnow() + datetime.timedelta(seconds=self._span_valve.prep)
@@ -194,9 +229,29 @@ class Automation:
             time.sleep(1)
             print('.',end="")
         print("\nSpan: Set Licor");
-        self.licor.set_span(1,self._span_valve.concentration)
+        self.licor.set_span(span1,self._span_valve.concentration)
 
         return
+    
+    def span2(self):
+        print("\nSpan2: Start Flow ",end="")
+        syscontrol.OpenValve(self._span2_valve.valve)
+        dt = datetime.datetime.utcnow() + datetime.timedelta(seconds=self._span2_valve.prep)
+        while(datetime.datetime.utcnow() < dt):
+            time.sleep(1)
+            print('.',end="")
+        
+        print("\nSpan2: Stop Flow ", end="")
+        syscontrol.CloseValve(self._span2_valve.valve)
+        dt = datetime.datetime.utcnow() + datetime.timedelta(seconds=self._span2_valve.cal)
+        while(datetime.datetime.utcnow() < dt):
+            time.sleep(1)
+            print('.',end="")
+        print("\nSpan2: Set Licor");
+        self.licor.set_span(2,self._span2_valve.concentration)
+        
+        return
+    
     def _close_all_valves(self):
         syscontrol.CloseValve(0)
         syscontrol.CloseValve(1)
@@ -218,6 +273,8 @@ class Automation:
         return
     
     def _save_data(self):
+        """Save data to JSON"""
+        
         self.file.write(',\n')
         print(self.df)
         jdata = self.df.to_json()
@@ -260,8 +317,8 @@ if __name__ == '__main__':
     ## Grab the file path and point towards the config file
     path = os.path.dirname(sys.argv[0])
 #    print(path)
-    if(path[path.rfind('/')+1:]!="CO2_automate") :
-        path = os.path.join(path,'CO2_automate')
+#    if(path[path.rfind('/')+1:]!="CO2_automate") :
+#        path = os.path.join(path,'CO2_automate')
 #    print(path)
     configfile = os.path.join(path,'config.json')\
     
@@ -280,6 +337,14 @@ if __name__ == '__main__':
         licorPort = sys.argv[1]
     print(licorPort + " selected")
     
+    ## Check for the 
+    if(input("Do you want to high span? (y or n): ")=='y'):
+        high_span = True
+    else:
+        high_span = False
+        
+#    print(high_span)
+    
     ## Run the primary program
     try:
         ## Load the config file
@@ -289,7 +354,7 @@ if __name__ == '__main__':
     
         ## Setup
         print("Starting Test")
-        sensor = Automation(licorPort,"Test",config)
+        sensor = Automation(licorPort,"Test",config,high_span)
         
         ## Run the test
         sensor.run()

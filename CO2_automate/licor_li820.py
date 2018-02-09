@@ -139,14 +139,20 @@ class Licor:
 #        date  = time.strftime("%m-%d-%y",time.gmtime())
         date  = time.strftime("%Y-%m-%d",time.gmtime())
         spanstr = []
-        if(span == 1):
+        if(span == 0):
             spanstr = "CO2SPAN>"
+            stemp = ""
+        elif(span==1):
+            spanstr = "CO2SPAN_A>"
+            stemp = ""
         elif(span==2):
-            spanstr = "CO2SPAN2>"
+            spanstr = "CO2SPAN_B>"
+            stemp = "2"
             
-        xmlstr = "<LI820><CAL><DATE>" + date + "</DATE><CO2SPAN>%d</CO2SPAN></CAL></LI820>" % int(ppm)
+#        xmlstr = "<LI820><CAL><DATE>" + date + "</DATE><CO2SPAN>%d</CO2SPAN></CAL></LI820>" % int(ppm)
+#        xmlstr = 
 #        xmlstr = "<li820><cal><date>" + date + "</date><" + spanstr + str(int(round(ppm)))+"</" + spanstr + "</cal></li820>\r\n"
-#        xmlstr = "<LI820><CAL><DATE>" + date + "</DATE><" + spanstr + str(int(round(ppm))+"</" + spanstr + "</CAL></LI820>\r\n"
+        xmlstr = "<LI820><CAL><DATE>" + date + "</DATE><" + spanstr + str(int(round(ppm)))+"</" + spanstr + "</CAL></LI820>\r\n"
 
 #        print(xmlstr)
         # Flush the buffer and write
@@ -161,7 +167,8 @@ class Licor:
         self.ser.flush()
         
         valid = False
-        print("Span: Wait for Licor Response ",end="")
+        sstr = "Span%s: Wait for Licor Response" % stemp
+        print(sstr,end="")
         for i in range(0,60):
             print(".",end="")
             line = self.ser.readline().decode()
@@ -182,7 +189,33 @@ class Licor:
         assert(valid == True)
         return
                 
+    def set_kspanval(self,span,val):
+        # Stop the data stream and clear the buffer 
+        self._stop_data()
+        time.sleep(0.5)
+        spanstr = []
+        if(span == 1):
+            spanstr = "<CO2KSPAN>"
+        elif(span==2):
+            spanstr = "<CO2KSPAN2>" 
             
+        date  = time.strftime("%Y-%m-%d",time.gmtime())
+        xmlstr = "<LI820><CAL><DATE>"+date+"</DATE>" + spanstr  +str(val) + "</" + spanstr + "</CAL></LI820>"
+#        xmlstr = "<li820><cal><date>" + date + "</date><" + spanstr + str(int(round(ppm)))+"</" + spanstr + "</cal></li820>\r\n"
+#        xmlstr = "<LI820><CAL><DATE>" + date + "</DATE><" + spanstr + str(int(round(ppm))+"</" + spanstr + "</CAL></LI820>\r\n"
+
+        print(xmlstr)
+        # Flush the buffer and write
+        self.ser.flush()
+        self.ser.write(xmlstr.encode())
+        
+        # Wait for the response
+        time.sleep(1.0)
+
+        ## Check for ACK
+        self._check_ack()
+        self.ser.flush()
+        
         
     def get_system(self):
         
