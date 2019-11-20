@@ -221,6 +221,24 @@ class Licor:
             except:
                 print('Invalid XML Data')
                 data = {}
+
+        elif self.model == 'LI820':
+            xroot = ET.XML(xmldata)
+            # print(xmldata)
+            try:
+                s_data = xroot.find('data')
+                # s_raw = s_data.find('raw')
+                data = {
+                    'celltemp':[float((s_data.find('celltemp')).text)],
+                    'cellpres':[float((s_data.find('cellpres')).text)],
+                    'co2':[float((s_data.find('co2')).text)],
+                    'co2abs':[float((s_data.find('co2abs')).text)],
+                    'ivolt':[float((s_data.find('ivolt')).text)],
+                    'raw':[float((s_data.find('raw')).text)]
+                }
+            except:
+                print('Invalid XML Data')
+                data = {}
         df = pd.DataFrame.from_dict(data)
 
         return df    
