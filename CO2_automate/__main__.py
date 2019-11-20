@@ -14,7 +14,8 @@ import json
 from operator import itemgetter
 
 import syscontrol
-from licor_li820 import *
+# from licor_li820 import *
+from licor import Licor
 from serialports import *
 
 
